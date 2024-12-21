@@ -87,6 +87,14 @@ echo "Detected OS: $OS"
 echo "Using X-Ray daemon URL: $XRAY_URL"
 echo "Using AWS region: $REGION"
 
+# Check for existing X-Ray daemon
+existing_daemon_pid=$(lsof -ti:2000)
+if [ -n "$existing_daemon_pid" ]; then
+    echo "An existing X-Ray daemon is running on port 2000. Terminating..."
+    kill "$existing_daemon_pid"
+    sleep 2
+fi
+
 # Download and extract the X-Ray daemon
 if [ ! -f "$XRAY_DAEMON_BINARY" ]; then
     echo "X-Ray daemon binary not found. Downloading and extracting..."
