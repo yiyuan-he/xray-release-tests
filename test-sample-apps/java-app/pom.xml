@@ -38,7 +38,7 @@
         <!-- AWS X-Ray Recorder for AWS SDK V2 -->
         <dependency>
             <groupId>com.amazonaws</groupId>
-            <artifactId>aws-xray-recorder-sdk-aws-sdk</artifactId>
+            <artifactId>aws-xray-recorder-sdk-aws-sdk-v2</artifactId>
             <version>2.14.0</version>
         </dependency>
     </dependencies>

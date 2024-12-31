@@ -9,7 +9,9 @@ import com.amazonaws.xray.AWSXRayRecorder;
 import com.amazonaws.xray.AWSXRayRecorderBuilder;
 import com.amazonaws.xray.entities.Segment;
 import com.amazonaws.xray.entities.Subsegment;
+import com.amazonaws.xray.interceptors.TracingInterceptor;
 
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
@@ -22,12 +24,20 @@ import java.util.stream.Collectors;
 public class MainApplication {
 
     private final S3Client s3Client;
+    private final S3Client tracedS3Client;
     private final AWSXRayRecorder xrayRecorder;
 
     public MainApplication() {
         xrayRecorder = AWSXRayRecorderBuilder.defaultRecorder();
         // Create the S3 client
         s3Client = S3Client.create();
+        tracedS3Client = S3Client.builder()
+            .overrideConfiguration(
+                ClientOverrideConfiguration.builder()
+                    .addExecutionInterceptor(new TracingInterceptor())
+                    .build()
+            )
+            .build();
     }
 
     public static void main(String[] args) {
@@ -92,6 +102,24 @@ public class MainApplication {
             throw new RuntimeException("Failed to list S3 buckets: " + e.getMessage());
         } finally {
             xrayRecorder.endSegment(); // End "ManualTraceHandler"
+        }
+    }
+
+    @GetMapping("/generate-automatic-traces")
+    public List<String> listBucketsAuto() {
+        Segment parentSegment = xrayRecorder.beginSegment("AutomaticTraceHandler");
+        parentSegment.putAnnotation("HandlerType", "Automatic");
+
+        try {
+            return tracedS3Client.listBuckets(ListBucketsRequest.builder().build())
+                                 .buckets()
+                                 .stream()
+                                 .map(Bucket::name)
+                                 .collect(Collectors.toList());
+        } catch (Exception e) {
+            throw e;
+        } finally {
+            xrayRecorder.endSegment();
         }
     }
 }
