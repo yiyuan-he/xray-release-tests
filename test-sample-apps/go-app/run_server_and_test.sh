@@ -10,14 +10,36 @@ MANUAL_TRACE_ENDPOINT="http://localhost:${SERVER_PORT}/generate-manual-traces"
 AUTOMATIC_TRACE_ENDPOINT="http://localhost:${SERVER_PORT}/generate-automatic-traces"
 XRAY_SDK_REPO="github.com/aws/aws-xray-sdk-go"
 
-# Prompt user for the commit hash or deafult to "latest"
-read -p "Enter the commit hash of the AWS X-Ray Go SDK to test (or press Enter to use 'latest'): " COMMIT_HASH
+# Prompt user for the commit hash or default to "latest"
+read -p "Enter the commit hash (or branch) of the AWS X-Ray Go SDK [default=master]: " COMMIT_HASH
 if [ -z "$COMMIT_HASH" ]; then
     COMMIT_HASH="latest"
     echo "Using the latest commit of the AWS X-Ray SDK."
 else
     echo "Using commit hash: $COMMIT_HASH"
 fi
+
+# Validate AWS credentials (either environment variables or AWS CLI configuration)
+validate_aws_credentials() {
+    # Check if AWS environment variables are set
+    if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ] && [ -n "$AWS_DEFAULT_REGION" ]; then
+        echo "Using AWS credentials from environment variables."
+        return 0
+    fi
+
+    # Check if AWS CLI configuration works
+    if aws sts get-caller-identity &> /dev/null; then
+        echo "Using AWS credentials from AWS CLI configuration."
+        return 0
+    fi
+
+    # If neither is valid, exit with an error
+    echo "Error: AWS credentials are not configured."
+    echo "Please configure credentials by either:"
+    echo "  1. Exporting AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION"
+    echo "  2. Setting up credentials with the AWS CLI (e.g., aws configure)"
+    exit 1
+}
 
 # Detect the AWS region
 detect_region() {
@@ -41,27 +63,6 @@ detect_region() {
     exit 1
 }
 
-# Validate AWS credentials (either environment variables or AWS CLI configuration)
-validate_aws_credentials() {
-    # Check if AWS environment variables are set
-    if [ -n "$AWS_ACCESS_KEY_ID" ] && [ -n "$AWS_SECRET_ACCESS_KEY" ] && [ -n "$AWS_DEFAULT_REGION" ]; then
-        echo "Using AWS credentials from environment variables."
-        return 0
-    fi
-
-    # Check if AWS CLI configuration works
-    if aws sts get-caller-identity &> /dev/null; then
-        echo "Using AWS credentials from AWS CLI configuration."
-        return 0
-    fi
-
-    # If neither is valid, exit with an error
-    echo "Error: AWS credentials are not configured."
-    echo "Please configure credentials by either:"
-    echo "  1. Exporting AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_DEFAULT_REGION"
-    echo "  2. Setting up credentials with the AWS CLI (e.g., aws configure)"
-    exit 1
-}
 
 validate_aws_credentials
 detect_region
@@ -86,14 +87,6 @@ esac
 echo "Detected OS: $OS"
 echo "Using X-Ray daemon URL: $XRAY_URL"
 echo "Using AWS region: $REGION"
-
-# Check for existing X-Ray daemon
-existing_daemon_pid=$(lsof -ti:2000)
-if [ -n "$existing_daemon_pid" ]; then
-    echo "An existing X-Ray daemon is running on port 2000. Terminating..."
-    kill "$existing_daemon_pid"
-    sleep 2
-fi
 
 # Download and extract the X-Ray daemon
 if [ ! -f "$XRAY_DAEMON_BINARY" ]; then
@@ -135,7 +128,7 @@ echo "Server started with PID: $SERVER_PID"
 # Wait for the server to initialize
 echo "Waiting for server to be ready..."
 for i in {1..10}; do
-    if curl -s -o /dev/null $MANUAL_TRACE_ENDPOINT; then
+    if ps -p $SERVER_PID > /dev/null; then
         echo "Server is ready!"
         break
     fi

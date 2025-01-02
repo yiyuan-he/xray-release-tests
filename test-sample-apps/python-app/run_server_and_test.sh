@@ -14,7 +14,7 @@ AUTOMATIC_FILE="automatic.py"
 SERVER_PORT=8080
 
 # Prompt the user for the AWS X-Ray SDK commit hash or version
-read -p "Enter the AWS X-Ray SDK commit hash to test (press Enter for latest commit): " SDK_COMMIT
+read -p "Enter the commit hash (or branch) for the AWS X-Ray Python SDK [default=master]: " SDK_COMMIT
 
 # Determine the appropriate entry for requirements.txt
 if [ -z "$SDK_COMMIT" ]; then
@@ -128,14 +128,6 @@ echo "Detected OS: $OS"
 echo "Using X-Ray daemon URL: $XRAY_URL"
 echo "Using AWS region: $REGION"
 
-# Check for existing X-Ray daemon
-existing_daemon_pid=$(lsof -ti:2000)
-if [ -n "$existing_daemon_pid" ]; then
-    echo "An existing X-Ray daemon is running on port 2000. Terminating..."
-    kill "$existing_daemon_pid"
-    sleep 2
-fi
-
 # Download and extract the X-Ray Daemon
 if [ ! -f "$XRAY_DAEMON_BINARY" ]; then
     echo "X-Ray daemon binary not found. Downloading and extracting..."
@@ -177,7 +169,7 @@ echo "manual.py server started with PID: $MANUAL_PID"
 # Wait for the server to initialize
 echo "Waiting for server to be ready..."
 for i in {1..10}; do
-    if curl -s -o /dev/null $MANUAL_ROUTE; then
+    if ps -p $MANUAL_PID > /dev/null; then
         echo "manual.py server is ready!"
         break
     fi
@@ -211,7 +203,7 @@ echo "automatic.py server started with PID: $AUTOMATIC_PID"
 # Wait for the server to initialize
 echo "Waiting for automatic.py server to be ready..."
 for i in {1..10}; do
-    if curl -s -o /dev/null $AUTOMATIC_ROUTE; then
+    if ps -p $AUTOMATIC_PID > /dev/null; then
         echo "automatic.py server is ready!"
         break
     fi

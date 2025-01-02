@@ -2,14 +2,26 @@
 
 set -e  # Exit on error
 
+LINUX_XRAY_URL="https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-linux-3.x.zip"
+MACOS_XRAY_URL="https://s3.us-east-2.amazonaws.com/aws-xray-assets.us-east-2/xray-daemon/aws-xray-daemon-macos-3.x.zip"
 XRAY_SDK_REPO="https://github.com/aws/aws-xray-sdk-java.git"
 SDK_CLONE_DIR="/tmp/aws-xray-sdk-java"
+XRAY_DAEMON_DIR="$HOME/xray-daemon"
+XRAY_DAEMON_BINARY=""
+SERVER_PORT=8080
 
 XRAY_SDK_GROUP_ID="com.amazonaws"
 XRAY_SDK_ARTIFACT_ID="aws-xray-recorder-sdk-aws-sdk-v2"
 
-MANUAL_TRACE_ENDPOINT="http://localhost:8080/generate-manual-traces"
-AUTO_TRACE_ENDPOINT="http://localhost:8080/generate-automatic-traces"
+MANUAL_TRACE_ENDPOINT="http://localhost:${SERVER_PORT}/generate-manual-traces"
+AUTO_TRACE_ENDPOINT="http://localhost:${SERVER_PORT}/generate-automatic-traces"
+
+# Prompt for commit hash or branch
+read -p "Enter the commit hash (or branch) for the AWS X-Ray Java SDK [default=master]: " COMMIT_HASH
+if [ -z "$COMMIT_HASH" ]; then
+    COMMIT_HASH="master"
+fi
+echo "Will check out: $COMMIT_HASH"
 
 validate_aws_credentials() {
     # Check if AWS environment variables are set
@@ -59,14 +71,50 @@ detect_region() {
 validate_aws_credentials
 detect_region
 
-# Prompt for commit hash or branch
-read -p "Enter the commit hash (or branch) for the AWS X-Ray Java SDK [default=master]: " COMMIT_HASH
-if [ -z "$COMMIT_HASH" ]; then
-    COMMIT_HASH="master"
-fi
-echo "Will check out: $COMMIT_HASH"
+# Detect the OS and set the URL and binary name
+OS=$(uname -s)
+case "$OS" in
+    Linux*)  
+        XRAY_URL=$LINUX_XRAY_URL
+        XRAY_DAEMON_BINARY="$XRAY_DAEMON_DIR/xray"
+        ;;
+    Darwin*) 
+        XRAY_URL=$MACOS_XRAY_URL
+        XRAY_DAEMON_BINARY="$XRAY_DAEMON_DIR/xray_mac"
+        ;;
+    *) 
+        echo "Unsupported OS: $OS"
+        exit 1
+        ;;
+esac
 
-# Clone and checkout
+echo "Detected OS: $OS"
+echo "Using X-Ray daemon URL: $XRAY_URL"
+echo "Using AWS region: $REGION"
+
+# Download and extract the X-Ray daemon
+if [ ! -f "$XRAY_DAEMON_BINARY" ]; then
+    echo "X-Ray daemon binary not found. Downloading and extracting..."
+    mkdir -p "$XRAY_DAEMON_DIR"
+    TEMP_ZIP="$XRAY_DAEMON_DIR/xray-daemon.zip"
+    curl -o "$TEMP_ZIP" "$XRAY_URL" || { echo "Failed to download X-Ray daemon"; exit 1; }
+    unzip -o "$TEMP_ZIP" -d "$XRAY_DAEMON_DIR" || { echo "Failed to extract X-Ray daemon"; exit 1; }
+    chmod +x "$XRAY_DAEMON_BINARY"
+    rm -f "$TEMP_ZIP"
+else
+    echo "X-Ray daemon binary already exists at $XRAY_DAEMON_BINARY"
+fi
+
+# Start the X-Ray Daemon
+echo "Starting the X-Ray daemon..."
+"$XRAY_DAEMON_BINARY" -o -n $REGION &
+XRAY_DAEMON_PID=$!
+echo "X-Ray daemon started with PID: $XRAY_DAEMON_PID"
+
+# Wait for the daemon to initialize
+sleep 5
+
+# Clone and checkout the specified commit hash
 if [ -d "$SDK_CLONE_DIR" ]; then
     echo "Removing existing clone at $SDK_CLONE_DIR..."
     rm -rf "$SDK_CLONE_DIR"
@@ -139,8 +187,21 @@ echo "Automatic endpoint returned: $AUTO_CODE"
 
 sleep 5
 
-echo "Stopping sample app..."
+# Stop the server and X-Ray daemon
+echo "Stopping the server..."
 kill "$SERVER_PID" || true
-sleep 2
+if kill -0 $XRAY_DAEMON_PID 2>/dev/null; then
+    kill $XRAY_DAEMON_PID
+    echo "X-Ray daemon stopped."
+else
+    echo "X-Ray daemon was not running."
+fi
 
-echo "Done! Check the AWS X-Ray console for traces."
+# Provide instructions to check the AWS Console
+echo "Traces should now be visible in the AWS X-Ray Console."
+echo "Visit the X-Ray Console and filter traces by service name."
+
+# Cleanup 
+echo "Cleaning up X-Ray daemon files..."
+rm -rf $HOME/xray-daemon
+echo "X-Ray daemon files removed."

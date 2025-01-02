@@ -1,0 +1,3 @@
+flask
+boto3
+git+https://github.com/aws/aws-xray-sdk-python.git@master#egg=aws-xray-sdk
