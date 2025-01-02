@@ -102,14 +102,6 @@ dotnet add reference $HOME/aws-xray-sdk-dotnet/sdk/src/Handlers/AspNetCore/AWSXr
 dotnet add reference $HOME/aws-xray-sdk-dotnet/sdk/src/Handlers/AwsSdk/AWSXRayRecorder.Handlers.AwsSdk.csproj
 echo "AWS X-Ray SDK added to the project."
 
-# Check for existing X-Ray daemon
-existing_daemon_pid=$(lsof -ti:2000)
-if [ -n "$existing_daemon_pid" ]; then
-    echo "An existing X-Ray daemon is running on port 2000. Terminating..."
-    kill "$existing_daemon_pid"
-    sleep 2
-fi
-
 # Download and extract the X-Ray daemon
 if [ ! -f "$XRAY_DAEMON_BINARY" ]; then
     echo "X-Ray daemon binary not found. Downloading and extracting..."
@@ -135,12 +127,15 @@ sleep 5
 # Start the server
 echo "Starting the server..."
 dotnet run &
+SERVER_PID=$!
 echo "Server running!"
+
+sleep 3
 
 # Wait for server to initialize
 echo "Waiting for server to be ready..."
 for i in {1..10}; do
-    if curl -s -o /dev/null $MANUAL_TRACE_ENDPOINT; then
+    if ps -p $SERVER_PID > /dev/null; then
         echo "Server is ready!"
         break
     fi
@@ -178,7 +173,6 @@ sleep 5
 # Stop the server and X-Ray daemon
 echo "Stopping the server..."
 dotnet build-server shutdown
-SERVER_PID=$(lsof -ti:$SERVER_PORT)
 kill -9 $SERVER_PID
 
 echo "Stopping the X-Ray daemon..."
