@@ -205,3 +205,5 @@ echo "Visit the X-Ray Console and filter traces by service name."
 echo "Cleaning up X-Ray daemon files..."
 rm -rf $HOME/xray-daemon
 echo "X-Ray daemon files removed."
+echo "Cleaning up cloned X-Ray SDK repo..."
+rm -rf $SDK_CLONE_DIR
