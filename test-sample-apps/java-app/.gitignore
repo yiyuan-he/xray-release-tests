@@ -1,2 +1,6 @@
 target/
 app.log
+.idea
+.settings
+.project
+.classpath
