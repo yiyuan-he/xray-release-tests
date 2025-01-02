@@ -181,6 +181,8 @@ echo "Hitting manual trace endpoint: $MANUAL_TRACE_ENDPOINT"
 MANUAL_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$MANUAL_TRACE_ENDPOINT")
 echo "Manual endpoint returned: $MANUAL_CODE"
 
+sleep 3
+
 echo "Hitting automatic trace endpoint: $AUTO_TRACE_ENDPOINT"
 AUTO_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$AUTO_TRACE_ENDPOINT")
 echo "Automatic endpoint returned: $AUTO_CODE"
@@ -207,3 +209,5 @@ rm -rf $HOME/xray-daemon
 echo "X-Ray daemon files removed."
 echo "Cleaning up cloned X-Ray SDK repo..."
 rm -rf $SDK_CLONE_DIR
+echo "Cleaning up sample app build artifacts..."
+rm -rf ./target
