@@ -143,7 +143,7 @@ echo "Server started with PID: $SERVER_PID"
 # Wait for server to initialize
 echo "Waiting for server to be ready..."
 for i in {1..10}; do
-    if curl -s -o /dev/null $MANUAL_TRACE_ENDPOINT; then
+    if ps -p $SERVER_PID > /dev/null; then
         echo "Server is ready!"
         break
     fi
