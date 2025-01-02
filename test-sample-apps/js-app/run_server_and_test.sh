@@ -12,7 +12,7 @@ PROJECT_DIR=$(pwd)
 XRAY_SDK_REPO="github.com/aws/aws-xray-sdk-node"
 
 # Prompt user for the commit hash or default to "latest"
-read -p "Enter the commit hash of the AWS X-Ray Node SDK to test (or press Enter to use 'latest'): " COMMIT_HASH
+read -p "Enter the commit hash (or branch) for the AWS X-Ray Node SDK [default=master]: " COMMIT_HASH
 if [ -z "$COMMIT_HASH" ]; then
     COMMIT_HASH="latest"
     echo "Using the latest commit of the AWS X-Ray SDK."

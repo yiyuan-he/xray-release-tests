@@ -12,7 +12,7 @@ AUTOMATIC_TRACE_ENDPOINT="http://localhost:${SERVER_PORT}/generate-automatic-tra
 XRAY_SDK_REPO="github.com/aws/aws-xray-sdk-dotnet"
 
 # Prompt user for the commit hash or default to "latest"
-read -p "Enter the commit hash of the AWS X-Ray .NET SDK to test (or press Enter to use 'latest'): " COMMIT_HASH
+read -p "Enter the commit hash (or branch) for the AWS X-Ray .NET SDK [default=master]: " COMMIT_HASH
 if [ -z "$COMMIT_HASH" ]; then
     COMMIT_HASH="latest"
     echo "Using the latest commit of the AWS X-Ray SDK."
