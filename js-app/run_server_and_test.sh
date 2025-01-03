@@ -90,10 +90,11 @@ echo "Using AWS region: $REGION"
 
 # Use the AWS X-Ray SDK on the specified commit hash
 echo "Cloning the AWS X-Ray SDK repo locally..."
-git clone https://$XRAY_SDK_REPO
+git clone https://$XRAY_SDK_REPO || { echo "Failed to clone the AWS X-Ray SDK repo"; exit 1; }
 cd aws-xray-sdk-node
 if [ "$COMMIT_HASH" != "latest" ]; then
-  git checkout $COMMIT_HASH
+    echo "Checking out commit hash: $COMMIT_HASH"
+    git checkout $COMMIT_HASH || { echo "Failed to checkout commit hash"; exit 1; }
 fi
 echo "Installing AWS X-Ray SDK dependencies..."
 npm install
@@ -185,6 +186,7 @@ echo "Visit the X-Ray Console and filter traces by service name."
 echo "Unlinking and deleting the AWS X-Ray SDK..."
 npm unlink aws-xray-sdk-node
 rm -rf aws-xray-sdk-node
+echo "AWS X-Ray SDK removed."
 echo "Cleaning up X-Ray daemon files..."
 rm -rf $HOME/xray-daemon
 echo "X-Ray daemon files removed."

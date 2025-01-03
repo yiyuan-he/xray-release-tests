@@ -93,7 +93,7 @@ echo "Cloning the AWS X-Ray SDK repo locally...:"
 git clone https://$XRAY_SDK_REPO $HOME/aws-xray-sdk-dotnet || { echo "Failed to clone the AWS X-Ray SDK repo"; exit 1; }
 cd $HOME/aws-xray-sdk-dotnet
 if [ "$COMMIT_HASH" != "latest" ]; then
-    echo "Checking out the specified commit hash..."
+    echo "Checking out commit hash: $COMMIT_HASH"
     git checkout $COMMIT_HASH || { echo "Failed to checkout commit hash"; exit 1; }
 fi
 cd $PROJECT_DIR
@@ -127,7 +127,6 @@ sleep 5
 # Start the server
 echo "Starting the server..."
 dotnet run &
-SERVER_PID=$!
 echo "Server running!"
 
 sleep 3
@@ -173,6 +172,7 @@ sleep 5
 # Stop the server and X-Ray daemon
 echo "Stopping the server..."
 dotnet build-server shutdown
+SERVER_PID=$(lsof -ti:$SERVER_PORT)
 kill -9 $SERVER_PID
 
 echo "Stopping the X-Ray daemon..."
