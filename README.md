@@ -15,8 +15,8 @@ At a high-level, the test script will:
 # Prerequisites
 - Set up AWS credentials with environment variables or cli configuration
 - Install the appropriate versions for each language:
-    - .NET: 9.0 or above
-    - Go: 1.19 or above
-    - Java: 8 or 11
-    - Python: 3.7 to 3.11
-    - JavaScript: node.js version 14.x or above
+    - **.NET**: 9.0 or above
+    - **Go**: 1.19 or above
+    - **Java**: 8 or 11
+    - **Python**: 3.7 to 3.11
+    - **JavaScript**: node.js version 14.x or above
