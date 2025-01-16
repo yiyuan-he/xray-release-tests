@@ -8,12 +8,10 @@ SDK_CLONE_DIR="$HOME/xray-release-testing/aws-xray-sdk-java"
 XRAY_SDK_CORE_ARTIFACT="aws-xray-recorder-sdk-core"
 XRAY_SDK_V2_ARTIFACT="aws-xray-recorder-sdk-aws-sdk-v2"
 
-# Prompt for commit hash or branch
-read -p "Enter the commit hash (or branch) for the AWS X-Ray Java SDK [default=master]: " COMMIT_HASH
-if [ -z "$COMMIT_HASH" ]; then
-    COMMIT_HASH="master"
-fi
-echo "Will check out: $COMMIT_HASH"
+# Prompt the user for the X-Ray SDK commit hash
+while [[ -z "$COMMIT_HASH" ]]; do
+    read -p "Enter the commit hash for the AWS X-Ray Java SDK (cannot be empty): " COMMIT_HASH
+done
 
 # Clone and checkout the specified commit hash
 echo "Cloning $XRAY_SDK_REPO into $SDK_CLONE_DIR" || { echo "Failed to clone the AWS X-Ray SDK repo"; exit 1; }
@@ -48,7 +46,9 @@ echo "Using the new X-Ray SDK version ($SDK_VERSION) in our Maven app..."
 mvn versions:use-dep-version \
   -Dincludes="com.amazonaws:${XRAY_SDK_CORE_ARTIFACT},com.amazonaws:${XRAY_SDK_V2_ARTIFACT}" \
   -DdepVersion="$SDK_VERSION" \
-  -DforceVersion=true
+  -DforceVersion=true \
+
+mvn versions:commit
 
 echo "Verifying that both X-Ray dependencies point to the local version..."
 

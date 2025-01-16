@@ -5,14 +5,10 @@ set -ex
 SERVER_PORT=8080
 XRAY_SDK_REPO="github.com/aws/aws-xray-sdk-go"
 
-# Prompt user for the commit hash or default to "latest"
-read -p "Enter the commit hash (or branch) of the AWS X-Ray Go SDK [default=master]: " COMMIT_HASH
-if [ -z "$COMMIT_HASH" ]; then
-    COMMIT_HASH="latest"
-    echo "Using the latest commit of the AWS X-Ray SDK."
-else
-    echo "Using commit hash: $COMMIT_HASH"
-fi
+# Prompt user for the X-Ray SDK commit hash
+while [[ -z "$COMMIT_HASH" ]]; do
+    read -p "Enter the commit hash for the AWS X-Ray Go SDK (cannot be empty): " COMMIT_HASH
+done
 
 # Update the AWS X-Ray SDK to the specified commit hash
 echo "Updating AWS X-Ray SDK to commit: $COMMIT_HASH..."

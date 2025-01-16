@@ -13,10 +13,4 @@
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\xray-release-testing\aws-xray-sdk-dotnet\sdk\src\Core\AWSXRayRecorder.Core.csproj" />
-    <ProjectReference Include="..\..\..\xray-release-testing\aws-xray-sdk-dotnet\sdk\src\Handlers\AspNetCore\AWSXrayRecorder.Handlers.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\..\xray-release-testing\aws-xray-sdk-dotnet\sdk\src\Handlers\AwsSdk\AWSXRayRecorder.Handlers.AwsSdk.csproj" />
-  </ItemGroup>
-
 </Project>

@@ -7,19 +7,14 @@ PYTHON_VENV="venv"
 REQUIREMENTS_FILE="requirements.txt"
 MANUAL_FILE="manual.py"
 
-# Promp the user for the AWS X-Ray SDK commit hash or version
-read -p "Enter the commit hash (or branch) for the AWS X-Ray Python SDK [default=master]: " SDK_COMMIT
+# Prompt the user for the X-Ray SDK commit hash
+while [[ -z "$COMMIT_HASH" ]]; do
+    read -p "Enter the commit hash for the AWS X-Ray Python SDK (cannot be empty): " COMMIT_HASH
+done
 
-# Determine appropriate entry for requirements.txt
-if [ -z "$SDK_COMMIT" ]; then
-    # Default to the latest commit on the master branch
-    SDK_ENTRY="git+https://github.com/aws/aws-xray-sdk-python.git@master#egg=aws-xray-sdk"
-    echo "Using the latest commit on the master branch."
-else
-    # Use the specified commit hash
-    SDK_ENTRY="git+https://github.com/aws/aws-xray-sdk-python.git@$SDK_COMMIT#egg=aws-xray-sdk"
-    echo "Using the specified commit hash: $SDK_COMMIT"
-fi
+# Use the specified commit hash in our requirements.txt
+SDK_ENTRY="git+https://github.com/aws/aws-xray-sdk-python.git@$COMMIT_HASH#egg=aws-xray-sdk"
+echo "Using the specified commit hash: $COMMIT_HASH"
 
 # Create or overwrite the requirements.txt file
 cat <<EOF > requirements.txt
@@ -53,3 +48,6 @@ setup_python_env() {
 
 # Validate Python environment
 setup_python_env
+
+source $PYTHON_VENV/bin/activate
+python server.py
