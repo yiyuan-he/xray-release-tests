@@ -2,7 +2,7 @@
 This directory contains sample apps and test scripts for our X-Ray SDKs in various languages.
 These sample apps and test scripts provide a simple sanity test for the end-to-end trace generation process of our X-Ray SDKs.
 
-At a high-level, the test script will:
+At a high-level, the test scripts will:
 1. Pull in a version of the X-Ray SDK based on user input and build the sample app.
 2. Pull in the binary for the X-Ray daemon for the user's OS (either MacOS or Linux).
 3. Start the X-Ray daemon on port `2000`.
