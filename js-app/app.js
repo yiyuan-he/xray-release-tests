@@ -27,25 +27,40 @@ app.get('/generate-automatic-traces', async (req, res) => {
 });
 
 // manual subsegment management
-app.get('/generate-manual-traces', async (req, res) => {
-  // create manual subsegment
-  AWSXRay.captureAsyncFunc('CustomSubsegment', async (subsegment) => {
+app.get('/generate-manual-traces', (req, res) => {
+  AWSXRay.captureFunc('ManualTraceHandler', (segment) => {
+    let mockBuckets = [];
+
     try {
-      const data = await s3Client.send(new ListBucketsCommand());
+      AWSXRay.captureFunc('MockOperation1', (subsegment) => {
+        try {
+          console.log("Simulating Mock Operation 1");
+          mockBuckets = ['mock-bucket1', 'mock-bucket2', 'mock-bucket3'];
 
-      const buckets = data.Buckets.map(bucket => ({
-        name: bucket.Name,
-        creation_date: bucket.CreationDate.toISOString()
-      }));
-      res.json(buckets);
-    } catch (err) {
-      subsegment.addError(err);
-      res.status(500).send(`Unable to list buckets: ${err.message}`);
+          AWSXRay.captureFunc('ProcessMockData', (processSubsegment) => {
+            try {
+              processSubsegment.addAnnotation("firstBucketName", mockBuckets[0]);
+            } finally {
+              processSubsegment.close();
+            }
+          });
+        } finally {
+          subsegment.close();
+        }
+      });
+      AWSXRay.captureFunc('MockOperation2', (subsegment) => {
+        try {
+          console.log("Simulating Mock Operation 2");
+        } finally {
+          subsegment.close();
+        }
+      });
+
+      res.status(200).json(mockBuckets);
+    } finally {
+      segment.close();
     }
-
-    subsegment.close();
-  });
-
+  })
 });
 
 // End the X-Ray segment for the request

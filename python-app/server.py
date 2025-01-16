@@ -32,10 +32,9 @@ def manual_trace():
             print("Simulating mock operation 1")
             # Start a nested subsegment for extracting bucket names
             with xray_recorder.in_subsegment('ProcessMockData'):
-                mock_buckets = ['bucket1', 'bucket2', 'bucket3']
+                mock_buckets = ['mock-bucket1', 'mock-bucket2', 'mock-bucket3']
                 # Add metadata to the subsegment
-                if len(mock_buckets) > 0:
-                    segment.put_annotation('first_bucket_name', mock_buckets[0])
+                segment.put_annotation('first_bucket_name', mock_buckets[0])
         # Make a second S3 API call and instrument with a sibling subsegment
         with xray_recorder.in_subsegment('MockOperation2'):
             print("Simulating mock operation 2")

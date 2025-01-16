@@ -45,7 +45,7 @@ func handleManualTrace(w http.ResponseWriter, r *http.Request) {
 	ctx, seg := xray.BeginSegment(r.Context(), "ManualTraceHandler")
 	defer seg.Close(nil)
 
-	// Call S3 to list buckets
+	// Call mock list buckets function
 	buckets, err := listBuckets(ctx) // Pass context
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to list buckets: %v", err), http.StatusInternalServerError)
@@ -60,36 +60,25 @@ func handleManualTrace(w http.ResponseWriter, r *http.Request) {
 // Manual instrumentation of S3 API Call
 func listBuckets(ctx context.Context) ([]string, error) {
 	// Start a subsegment for the S3 API call
-	s3CallCtx, s3SubSeg := xray.BeginSubsegment(ctx, "S3ListBucketsCall1")
-	defer s3SubSeg.Close(nil)
+	opCallCtx, opSubSeg := xray.BeginSubsegment(ctx, "MockOperation1")
+	defer opSubSeg.Close(nil)
 
-	// Make the API call to list buckets
-	output, err := s3Client.ListBuckets(s3CallCtx, &s3.ListBucketsInput{})
-	if err != nil {
-		s3SubSeg.AddError(err)
-		return nil, err
-	}
+	// Simulate the first mock operation
+	fmt.Println("Simulating Mock Operation 1: Listing buckets")
+	mockBuckets := []string{"mock-bucket1", "mock-bucket2", "mock-bucket3"}
 
 	// Start a nested subsegment for extracting bucket names
-	_, extractSubSeg := xray.BeginSubsegment(s3CallCtx, "ExtractBucketNames")
+	_, extractSubSeg := xray.BeginSubsegment(opCallCtx, "ProcessMockData")
 	defer extractSubSeg.Close(nil)
 
-	// Extract bucket names
-	var bucketNames []string
-	for _, bucket := range output.Buckets {
-		bucketNames = append(bucketNames, *bucket.Name)
-	}
-
 	// Add metadata to the subsegment
-	if len(output.Buckets) > 0 {
-		extractSubSeg.AddMetadata("firstBucketName", output.Buckets[0].Name)
-	}
+	extractSubSeg.AddMetadata("firstBucketName", mockBuckets[0])
 
 	// Make a second S3 API call and instrument with a sibling subsegment
-	_, s3SubSeg2 := xray.BeginSubsegment(ctx, "S3ListBucketsCall2")
-	defer s3SubSeg2.Close(nil)
+	_, opSubSeg2 := xray.BeginSubsegment(ctx, "MockOperation2")
+	defer opSubSeg2.Close(nil)
 
-	return bucketNames, nil
+	return mockBuckets, nil
 }
 
 func handleAutomaticTrace(w http.ResponseWriter, r *http.Request) {

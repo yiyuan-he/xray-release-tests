@@ -42,19 +42,55 @@ app.MapGet("/generate-automatic-traces", async () =>
 
 app.MapGet("/generate-manual-traces", async () =>
 {
-    AWSXRayRecorder.Instance.BeginSubsegment("ManualSubsegment");
+    AWSXRayRecorder.Instance.BeginSubsegment("ManualTraceHandler");
     try
     {
-        // List the S3 buckets
-        var response = await s3Client.ListBucketsAsync();
-
-        var buckets = response.Buckets.Select(bucket => new
+        AWSXRayRecorder.Instance.BeginSubsegment("MockOperation1");
+        try 
         {
-            name = bucket.BucketName,
-            creation_date = bucket.CreationDate
-        }).ToList();
+            Console.WriteLine("Simulating mock operation 1");
 
-        return Results.Ok(buckets);
+            AWSXRayRecorder.Instance.BeginSubsegment("ProcessMockData");
+            try 
+            {
+                var mockBuckets = new[] { "bucket1", "bucket2", "bucket3" };
+
+                AWSXRayRecorder.Instance.AddAnnotation("first_bucket_name", mockBuckets[0]);
+            }
+            catch (Exception e)
+            {
+                AWSXRayRecorder.Instance.AddException(e);
+            }
+            finally
+            {
+                AWSXRayRecorder.Instance.EndSubsegment();
+            }
+        }
+        catch (Exception e)
+        {
+            AWSXRayRecorder.Instance.AddException(e);
+        }
+        finally
+        {
+            AWSXRayRecorder.Instance.EndSubsegment();
+        }
+
+
+        AWSXRayRecorder.Instance.BeginSubsegment("MockOperation2");
+        try 
+        {
+            Console.WriteLine("Simulating mock operation 2");
+        }
+        catch (Exception e)
+        {
+            AWSXRayRecorder.Instance.AddException(e);
+        }
+        finally
+        {
+            AWSXRayRecorder.Instance.EndSubsegment();
+        }
+
+        return Results.Ok();
     }
     catch (Exception ex)
     {

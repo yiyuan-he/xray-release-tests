@@ -16,6 +16,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.Bucket;
 import software.amazon.awssdk.services.s3.model.ListBucketsRequest;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -50,56 +51,53 @@ public class MainApplication {
         Segment parentSegment = xrayRecorder.beginSegment("ManualTraceHandler");
         parentSegment.putAnnotation("HandlerType", "Manual");
 
-        List<String> buckets = null;
+        List<String> mockBuckets = null;
 
         try {
-            Subsegment s3SubSeg1 = xrayRecorder.beginSubsegment("S3ListBucketsCall1");
-            s3SubSeg1.putAnnotation("Operation", "listBuckets1");
+            Subsegment mockSubSeg1 = xrayRecorder.beginSubsegment("MockOperation1");
+            mockSubSeg1.putAnnotation("Operation", "MockOperation1");
 
             try {
-                buckets = s3Client.listBuckets(ListBucketsRequest.builder().build())
-                                  .buckets()
-                                  .stream()
-                                  .map(Bucket::name)
-                                  .collect(Collectors.toList());
+                System.out.println("Simulating Mock Operation 1: Listing buckets");
+                mockBuckets = Arrays.asList("mock-bucket1", "mock-bucket2", "mock-bucket3");
 
-                Subsegment extractSubSeg = xrayRecorder.beginSubsegment("ExtractFirstBucketName");
+                Subsegment extractSubSeg = xrayRecorder.beginSubsegment("ProcessMockData");
                 try {
-                    String firstBucketName = buckets.get(0);
+                    String firstBucketName = mockBuckets.get(0);
                     extractSubSeg.putAnnotation("FirstBucketName", firstBucketName);
                 } catch (Exception e) {
                     extractSubSeg.addException(e);
                     throw e;
                 } finally {
-                    xrayRecorder.endSubsegment(); // End "ExtractFirstBucketName"
+                    xrayRecorder.endSubsegment(); // End "ProcessMockData"
                 }
 
             } catch (Exception e) {
-                s3SubSeg1.addException(e);
+                mockSubSeg1.addException(e);
                 throw e;
             } finally {
-                xrayRecorder.endSubsegment(); // End "S3ListBucketsCall1"
+                xrayRecorder.endSubsegment(); // End "MockOperation1"
             }
 
 
             // Create a sibling subsegment
-            Subsegment s3SubSeg2 = xrayRecorder.beginSubsegment("S3ListBucketsCall2");
-            s3SubSeg2.putAnnotation("Operation", "listBuckets2");
+            Subsegment mockSubSeg2 = xrayRecorder.beginSubsegment("MockOperation2");
+            mockSubSeg2.putAnnotation("Operation", "MockOperation2");
 
             try {
-                s3Client.listBuckets(ListBucketsRequest.builder().build());
+                System.out.println("Simulating Mock Operation 2: Additional processing");
             } catch (Exception e) {
-                s3SubSeg2.addException(e);
+                mockSubSeg2.addException(e);
                 throw e;
             } finally {
-                xrayRecorder.endSubsegment(); // End "S3ListBucketsCall2"
+                xrayRecorder.endSubsegment(); // End "MockOperation2"
             }
 
-            return buckets; // Return the list of buckets
+            return mockBuckets; // Return the list of buckets
 
         } catch (Exception e) {
             parentSegment.addException(e);
-            throw new RuntimeException("Failed to list S3 buckets: " + e.getMessage());
+            throw new RuntimeException("Failed to generate manual instrumentation: " + e.getMessage());
         } finally {
             xrayRecorder.endSegment(); // End "ManualTraceHandler"
         }

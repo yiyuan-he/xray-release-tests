@@ -25,6 +25,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-xray-recorder-sdk-core</artifactId>
+            <!-- this version is just a placeholder and will get replaced by setup script -->
             <version>2.18.2</version>
         </dependency>
 
@@ -32,6 +33,7 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-xray-recorder-sdk-aws-sdk-v2</artifactId>
+            <!-- this version is just a placeholder and will get replaced by setup script -->
             <version>2.18.2</version>
         </dependency>
     </dependencies>
