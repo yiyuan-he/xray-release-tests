@@ -32,7 +32,7 @@ func main() {
 
 	// Set up HTTP routes
 	http.HandleFunc("/generate-manual-traces", handleManualTrace)
-	http.HandleFunc("/generate-automatic-traces", handleAutomaticTrace)
+	http.Handle("/generate-automatic-traces", xray.Handler(xray.NewFixedSegmentNamer("AutomaticTraceHandler"), http.HandlerFunc(handleAutomaticTrace)))
 
 	// Start the server
 	port := 8080
@@ -45,26 +45,11 @@ func handleManualTrace(w http.ResponseWriter, r *http.Request) {
 	ctx, seg := xray.BeginSegment(r.Context(), "ManualTraceHandler")
 	defer seg.Close(nil)
 
-	// Call mock list buckets function
-	buckets, err := listBuckets(ctx) // Pass context
-	if err != nil {
-		http.Error(w, fmt.Sprintf("failed to list buckets: %v", err), http.StatusInternalServerError)
-		return
-	}
-
-	// Write the bucket names as JSON response
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(buckets)
-}
-
-// Manual instrumentation of S3 API Call
-func listBuckets(ctx context.Context) ([]string, error) {
-	// Start a subsegment for the S3 API call
 	opCallCtx, opSubSeg := xray.BeginSubsegment(ctx, "MockOperation1")
 	defer opSubSeg.Close(nil)
 
 	// Simulate the first mock operation
-	fmt.Println("Simulating Mock Operation 1: Listing buckets")
+	fmt.Println("Simulating Mock Operation 1")
 	mockBuckets := []string{"mock-bucket1", "mock-bucket2", "mock-bucket3"}
 
 	// Start a nested subsegment for extracting bucket names
@@ -75,22 +60,21 @@ func listBuckets(ctx context.Context) ([]string, error) {
 	extractSubSeg.AddMetadata("firstBucketName", mockBuckets[0])
 
 	// Make a second S3 API call and instrument with a sibling subsegment
+	fmt.Println("Simulating Mock Operation 2")
 	_, opSubSeg2 := xray.BeginSubsegment(ctx, "MockOperation2")
 	defer opSubSeg2.Close(nil)
 
-	return mockBuckets, nil
+	// Write the bucket names as JSON response
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(mockBuckets)
 }
 
 func handleAutomaticTrace(w http.ResponseWriter, r *http.Request) {
-	// Start a root segment for the HTTP request
-	ctx, seg := xray.BeginSegment(r.Context(), "AutomaticTraceHandler")
-	defer seg.Close(nil)
-
 	// Load AWS configuration with automatic instrumentation
-	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion("us-west-2"))
+	cfg, err := config.LoadDefaultConfig(r.Context(), config.WithRegion("us-west-2"))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to load AWS configuration: %v", err), http.StatusInternalServerError)
-		return 
+		return
 	}
 
 	// Automatically instrument AWS SDK v2
@@ -100,14 +84,14 @@ func handleAutomaticTrace(w http.ResponseWriter, r *http.Request) {
 	autoS3Client := s3.NewFromConfig(cfg)
 
 	// Make the API call to list buckets
-	output, err := autoS3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
+	output, err := autoS3Client.ListBuckets(r.Context(), &s3.ListBucketsInput{})
 	if err != nil {
 		http.Error(w, fmt.Sprintf("failed to list buckets: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	// Extract bucket names
-	var bucketNames[]string
+	var bucketNames []string
 	for _, bucket := range output.Buckets {
 		bucketNames = append(bucketNames, *bucket.Name)
 	}
