@@ -52,6 +52,26 @@ mvn versions:commit
 
 echo "Verifying that both X-Ray dependencies point to the local version..."
 
+POM_FILE="$(pwd)/pom.xml"
+VALIDATION_FAILED=false
+
+# Validate aws-xray-recorder-sdk-core
+if ! grep -A 2 "<artifactId>$XRAY_SDK_CORE_ARTIFACT</artifactId>" "$POM_FILE" | grep -q "<version>$SDK_VERSION</version>"; then
+  echo "ERROR: Validation failed - $XRAY_SDK_CORE_ARTIFACT doesn't match version $SDK_VERSION in $POM_FILE!"
+  VALIDATION_FAILED=true
+fi
+
+# Validate aws-xray-recorder-sdk-aws-sdk-v2
+if ! grep -A 2 "<artifactId>$XRAY_SDK_V2_ARTIFACT</artifactId>" "$POM_FILE" | grep -q "<version>$SDK_VERSION</version>"; then
+  echo "ERROR: Validation failed - $XRAY_SDK_V2_ARTIFACT doesn't match version $SDK_VERSION in $POM_FILE!"
+  VALIDATION_FAILED=true
+fi
+
+if [ "$VALIDATION_FAILED" = true ]; then
+  echo "One or more validations failed. Exiting."
+  exit 1
+fi
+
 mvn dependency:tree | grep xray
 
 mvn clean install -DskipTests
