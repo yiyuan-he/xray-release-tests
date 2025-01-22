@@ -20,3 +20,39 @@ At a high-level, the test scripts will:
     - **Java**: 8 or 11
     - **Python**: 3.7 to 3.11
     - **JavaScript**: node.js version 14.x or above
+
+# Instructions
+1. Run the X-Ray daemon setup script `./validate_and_initialize_xray_daemon.sh`
+2. Open another terminal session and `cd` into the language directory you want to test. i.e. `cd java-app` for Java.
+3. Run the sample app setup script in the directory `./setup_sample_app.sh`. Wait until the server starts successfully.
+4. Open another terminal session and run the call endpoint script `./call_endpoints.sh`. Wait for calls to both endpoints to 
+be made successfully.
+5. Go to the CloudWatch in AWS Console and verify the traces are correctly generated.
+
+1. Run the X-Ray Daemon Setup Script
+Execute the following command the set up the X-Ray daemon:
+```bash
+./validate_and_initialize_xray_daemon.sh
+```
+
+2. Navigate to the Language Directory
+Open a new terminal session and navigate to the directory of the language you want to test. For example, for Java:
+```bash
+cd java-app
+```
+
+3. Run the Sample App Setup Script
+In the same directory, run the sample app setup script:
+```bash
+./setup_sample_app.sh
+```
+Wait until the server starts successfully.
+
+4. Run the Call Endpoint Script.
+Open a new terminal session and naviate back to the `/xray-release-tests` directory. Then run the call endpoint script:
+```bash
+./call_endpoints.sh
+```
+
+5. Verify Traces in AWS CloudWatch
+Go to the CloudWatch section in the AWS Console and verify that the traces are correctly generated.
