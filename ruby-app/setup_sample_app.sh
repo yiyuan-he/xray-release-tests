@@ -13,8 +13,11 @@ done
 AWS_XRAY_SDK_LINE="gem 'aws-xray-sdk', git: 'https://github.com/aws/aws-xray-sdk-ruby.git', ref: '$COMMIT_HASH', require: ['aws-xray-sdk/facets/rails/railtie']"
 
 echo "Adding dependencies to the Gemfile..."
-echo "AWS_SDK_S3_LINE" >> "$GEMFILE"
-echo "AWS_XRAY_SDK_LINE" >> "$GEMFILE"
+{
+    echo ""
+    echo "$AWS_SDK_S3_LINE" 
+    echo "$AWS_XRAY_SDK_LINE"
+} >> "$GEMFILE"
 
 echo "Running bundle install..."
 bundle install
