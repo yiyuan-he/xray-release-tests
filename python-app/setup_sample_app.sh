@@ -42,12 +42,9 @@ setup_python_env() {
         echo "Error: $REQUIREMENTS_FILE not found."
         exit 1
     fi
-
-    deactivate
 }
 
 # Validate Python environment
 setup_python_env
 
-source $PYTHON_VENV/bin/activate
 python server.py
