@@ -22,30 +22,35 @@ At a high-level, the test scripts will:
     - **JavaScript**: node.js version 14.x or above
 
 # Instructions
-1. Run the X-Ray Daemon Setup Script
+1. **Run the X-Ray Daemon Setup Script**
+
 Execute the following command the set up the X-Ray daemon:
 ```bash
 ./validate_and_initialize_xray_daemon.sh
 ```
 
-2. Navigate to the Language Directory
+2. **Navigate to the Language Directory**
+
 Open a new terminal session and navigate to the directory of the language you want to test. For example, for Java:
 ```bash
 cd java-app
 ```
 
-3. Run the Sample App Setup Script
+3. **Run the Sample App Setup Script**
+
 In the same directory, run the sample app setup script:
 ```bash
 ./setup_sample_app.sh
 ```
 Wait until the server starts successfully.
 
-4. Run the Call Endpoint Script.
+4. **Run the Call Endpoint Script.**
+
 Open a new terminal session and naviate back to the `/xray-release-tests` directory. Then run the call endpoint script:
 ```bash
 ./call_endpoints.sh
 ```
 
-5. Verify Traces in AWS CloudWatch
+5. **Verify Traces in AWS CloudWatch**
+
 Go to the CloudWatch section in the AWS Console and verify that the traces are correctly generated.
