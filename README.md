@@ -64,7 +64,7 @@ Open a new terminal session and navigate back to the `/xray-release-tests` direc
 
 Go to the CloudWatch section in the AWS Console and verify that the traces are correctly generated.
 
-Ensure that there are 2 traces that correspond to the /generate-manual-traces and /generate-automatic-traces call.
+Ensure that there are 2 traces that correspond to the `/generate-manual-traces` and `/generate-automatic-traces call`.
 
-* Validate that /generate-automatic-traces has an S3 Subsegment
-* Validate that /generate-manual-traces has three Subsegments named MockOperation1, ProcessMockData, and MockOperation2
+* Validate that `/generate-automatic-traces` has an S3 Subsegment
+* Validate that `/generate-manual-traces` has three Subsegments named MockOperation1, ProcessMockData, and MockOperation2
