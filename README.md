@@ -20,14 +20,16 @@ At a high-level, the test scripts will:
     - **Java**: 8 or 11
     - **Python**: 3.7 to 3.11
     - **JavaScript**: node.js version 14.x or above
+    - **Ruby**: 2.3.6 or above
 
 # Instructions
 1. **Run the X-Ray Daemon Setup Script**
 
 Execute the following command the set up the X-Ray daemon:
 ```bash
-./validate_and_initialize_xray_daemon.sh
+./validate_and_initialize_xray_daemon.sh <aws-region>
 ```
+Note: the script will default to `us-east-1` if no region is passed as an argument.
 
 2. **Navigate to the Language Directory**
 
@@ -42,11 +44,18 @@ In the same directory, run the sample app setup script:
 ```bash
 ./setup_sample_app.sh
 ```
+The script will prompt you to enter a hash commit. This can be found at:
+- **Java**: https://github.com/aws/aws-xray-sdk-java/commits/master/
+- **Go**: https://github.com/aws/aws-xray-sdk-go/commits/master/
+- **Python**: https://github.com/aws/aws-xray-sdk-python/commits/master/
+- **JavaScript**: https://github.com/aws/aws-xray-sdk-node/commits/master/
+- **.NET**: https://github.com/aws/aws-xray-sdk-dotnet/commits/master/
+
 Wait until the server starts successfully.
 
 4. **Run the Call Endpoint Script.**
 
-Open a new terminal session and naviate back to the `/xray-release-tests` directory. Then run the call endpoint script:
+Open a new terminal session and navigate back to the `/xray-release-tests` directory. Then run the call endpoint script:
 ```bash
 ./call_endpoints.sh
 ```
@@ -54,3 +63,8 @@ Open a new terminal session and naviate back to the `/xray-release-tests` direct
 5. **Verify Traces in AWS CloudWatch**
 
 Go to the CloudWatch section in the AWS Console and verify that the traces are correctly generated.
+
+Ensure that there are 2 traces that correspond to the /generate-manual-traces and /generate-automatic-traces call.
+
+* Validate that /generate-automatic-traces has an S3 Subsegment
+* Validate that /generate-manual-traces has three Subsegments named MockOperation1, ProcessMockData, and MockOperation2

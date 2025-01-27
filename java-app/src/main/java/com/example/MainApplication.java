@@ -58,7 +58,7 @@ public class MainApplication {
             mockSubSeg1.putAnnotation("Operation", "MockOperation1");
 
             try {
-                System.out.println("Simulating Mock Operation 1: Listing buckets");
+                System.out.println("Simulating Mock Operation 1");
                 mockBuckets = Arrays.asList("mock-bucket1", "mock-bucket2", "mock-bucket3");
 
                 Subsegment extractSubSeg = xrayRecorder.beginSubsegment("ProcessMockData");
@@ -85,7 +85,7 @@ public class MainApplication {
             mockSubSeg2.putAnnotation("Operation", "MockOperation2");
 
             try {
-                System.out.println("Simulating Mock Operation 2: Additional processing");
+                System.out.println("Simulating Mock Operation 2");
             } catch (Exception e) {
                 mockSubSeg2.addException(e);
                 throw e;
